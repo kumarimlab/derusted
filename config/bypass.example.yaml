@@ -1,0 +1,87 @@
+# Derusted Bypass Configuration - Example
+#
+# This file shows example bypass rules for common scenarios.
+# Copy to bypass.yaml and customize for your needs.
+#
+# Documentation: docs/BYPASS.md
+
+# Enable/disable bypass system entirely
+# Default: true
+# Env var: DERUSTED_BYPASS_ENABLED
+enabled: true
+
+# Allow dynamic bypass on certificate pinning detection
+# Default: false (conservative)
+# Env var: DERUSTED_BYPASS_ALLOW_DYNAMIC
+#
+# When true: Proxy automatically adds bypass rules when pinning detected
+# When false: User must manually configure all bypass rules
+allow_dynamic: false
+
+# Static bypass rules (user-configured)
+# These rules are always active and never expire
+static_rules:
+  # Example: Corporate internal domains
+  # - pattern: "*.internal.company.com"
+  #   reason: "UserConfigured"
+  #   description: "Internal company services"
+  
+  # Example: Specific banking site
+  # - pattern: "online.bankofamerica.com"
+  #   reason: "UserConfigured"
+  #   description: "Bank of America online banking"
+  
+  # Example: Cloud provider console
+  # - pattern: "console.aws.amazon.com"
+  #   reason: "UserConfigured"
+  #   description: "AWS Console (sensitive operations)"
+
+# Dynamic bypass settings (when allow_dynamic: true)
+dynamic:
+  # Default TTL for dynamic rules (seconds)
+  # Default: 3600 (1 hour)
+  default_ttl: 3600
+  
+  # Maximum number of dynamic rules
+  # Default: 1000
+  # Prevents unbounded memory growth
+  max_rules: 1000
+  
+  # Cleanup interval for expired rules (seconds)
+  # Default: 300 (5 minutes)
+  cleanup_interval: 300
+
+# Alert settings
+alerts:
+  # Enable alerts on bypass events
+  # Default: true
+  # Env var: DERUSTED_BYPASS_ALERT_ENABLED
+  enabled: true
+  
+  # Alert on static rule matches
+  # Default: true
+  alert_on_static: true
+  
+  # Alert on dynamic rule additions
+  # Default: true
+  alert_on_dynamic: true
+  
+  # Alert on certificate pinning detection
+  # Default: true
+  alert_on_pinning: true
+
+# Load example rules (opt-in)
+# Default: false
+# Env var: DERUSTED_BYPASS_INCLUDE_EXAMPLES
+#
+# When true: Loads 60+ example bypass rules for:
+# - Microsoft Office 365
+# - Common banking sites (US)
+# - Cloud provider consoles (AWS, GCP, Azure)
+# - Authentication services (Okta, Auth0, Duo)
+# - Apple/Google services (certificate pinning)
+# - Government sites (.gov, .mil)
+#
+# WARNING: Only enable if you want to bypass ALL these services
+# Recommended: Copy specific rules you need to static_rules instead
+include_example_rules: false

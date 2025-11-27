@@ -1,0 +1,6 @@
+# Minimal bypass configuration - Conservative defaults
+
+enabled: true
+allow_dynamic: false
+static_rules: []
+include_example_rules: false

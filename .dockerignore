@@ -1,0 +1,51 @@
+# Target directory (build artifacts)
+target/
+**/target/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Examples (incomplete, excluded from build)
+examples/
+examples.disabled/
+
+# Test data
+tests/data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Certificates (generated at runtime)
+certs/
+*.pem
+*.key
+*.crt
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# CI/CD
+.github/
+
+# Private docs
+pdocs/
+CLAUDE.md

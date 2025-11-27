@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: derusted-test
+    environment:
+      # JWT Authentication (32+ character secret required)
+      - JWT_SECRET=test_secret_key_minimum_32_chars_for_security!!
+      - JWT_ISSUER=derusted-test
+      - JWT_AUDIENCE=proxy-test
+
+      # Logging
+      - RUST_LOG=derusted=debug,info
+
+    volumes:
+      # Mount source code read-write so cargo can build
+      - .:/workspace
+      # Cache cargo registry and target for faster rebuilds
+      - cargo-registry:/usr/local/cargo/registry
+      - cargo-git:/usr/local/cargo/git
+      - target-cache:/workspace/target
+
+    networks:
+      - test-net
+
+    # Allow container to make outbound connections for DNS tests
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+    command: >
+      /bin/bash -c "
+      cd /workspace &&
+      echo '=== Running Derusted Test Suite ===' &&
+      echo 'Note: DNS tests require network access and may fail in restricted environments' &&
+      cargo test --lib &&
+      echo '=== Tests Complete ==='
+      "
+
+volumes:
+  cargo-registry:
+  cargo-git:
+  target-cache:
+
+networks:
+  test-net:
+    driver: bridge

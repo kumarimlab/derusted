@@ -1,0 +1,127 @@
+[package]
+name = "derusted"
+version = "0.1.0"
+edition = "2021"
+authors = ["Kumar AS <kumar.imlab@outlook.com>"]
+license = "MIT"
+description = "Programmable HTTPS interception and traffic inspection engine for security-critical applications"
+homepage = "https://github.com/kumaras/derusted"
+repository = "https://github.com/kumaras/derusted"
+documentation = "https://docs.rs/derusted"
+readme = "README.md"
+keywords = ["mitm", "tls", "https", "interception", "security"]
+categories = ["network-programming", "cryptography"]
+rust-version = "1.70"
+
+[lib]
+name = "derusted"
+path = "src/lib.rs"
+
+[features]
+# Enable tests that require outbound network access (e.g., DNS resolution)
+# By default, these tests are disabled to ensure compatibility with restricted environments
+network-tests = []
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full", "signal"] }
+tokio-util = "0.7"
+
+# HTTP (v1.1 and v2)
+hyper = { version = "1.1", features = ["server", "http1", "http2"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+h2 = "0.4.6"  # Upgraded to fix RUSTSEC-2024-0003 (resource exhaustion DoS)
+http = "1.0"
+http-body-util = "0.1"
+httparse = "1.8"
+hpack = "0.3"  # KNOWN ISSUE: No patched version available for RUSTSEC-2024-0003
+
+# TLS with MITM support
+rustls = "0.22"
+tokio-rustls = "0.25"
+rustls-pemfile = "2.0"
+rcgen = { version = "0.12", features = ["x509-parser"] }
+x509-parser = "0.16"
+webpki-roots = "0.26"
+pem = "3.0"
+
+# JWT authentication
+jsonwebtoken = "9.2"
+base64 = "0.21"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Time utilities
+chrono = { version = "0.4", features = ["serde"] }
+time = "0.3"
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Async utilities
+futures = "0.3"
+bytes = "1.5"
+pin-project = "1.1"
+
+# Metrics
+prometheus = "0.13"
+lazy_static = "1.4"
+
+# Certificate and DNS cache
+lru = "0.12"
+num_cpus = "1.16"  # CPU core detection for Tokio runtime tuning
+
+# DNS and SSRF protection
+trust-dns-resolver = "0.23"
+ipnetwork = "0.20"
+
+# Random (for JWT)
+rand = "0.8"
+
+# HTTP client (for upstream)
+reqwest = { version = "0.11", features = ["json"] }
+
+# Configuration
+dotenv = "0.15"
+
+# URL parsing for mixed content policy
+url = "2.5"
+
+# Secret management (for CA key storage)
+secrecy = { version = "0.8", features = ["serde"] }
+
+# Vault client (for CA key backend)
+vaultrs = "0.7"
+vaultrs-login = "0.2"
+
+# Regex for PII redaction
+regex = "1.10"
+
+# Async trait support
+async-trait = "0.1"
+
+# SQLite logging backend
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite"] }  # Upgraded to fix RUSTSEC-2024-0363 (binary protocol misinterpretation)
+
+[dev-dependencies]
+rustls-native-certs = "0.7"
+tokio-test = "0.4"
+tempfile = "3.8"
+criterion = { version = "0.5", features = ["async_tokio"] }
+
+[[bench]]
+name = "week4_benchmarks"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

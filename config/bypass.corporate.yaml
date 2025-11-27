@@ -1,0 +1,59 @@
+# Corporate environment bypass configuration example
+#
+# Use case: Enterprise proxy deployment
+# - Bypass internal corporate domains
+# - Bypass common cloud consoles
+# - Allow dynamic bypass for emergencies
+
+enabled: true
+allow_dynamic: true
+
+static_rules:
+  # Internal corporate domains
+  - pattern: "*.internal.company.com"
+    reason: "UserConfigured"
+    description: "Internal company services"
+  
+  - pattern: "*.corp.company.com"
+    reason: "UserConfigured"
+    description: "Corporate network resources"
+  
+  # Development/staging environments
+  - pattern: "*.dev.company.com"
+    reason: "UserConfigured"
+    description: "Development environment"
+  
+  - pattern: "*.staging.company.com"
+    reason: "UserConfigured"
+    description: "Staging environment"
+  
+  # Cloud provider consoles (for DevOps team)
+  - pattern: "console.aws.amazon.com"
+    reason: "UserConfigured"
+    description: "AWS Console"
+  
+  - pattern: "console.cloud.google.com"
+    reason: "UserConfigured"
+    description: "Google Cloud Console"
+  
+  - pattern: "portal.azure.com"
+    reason: "UserConfigured"
+    description: "Azure Portal"
+  
+  # SSO/Authentication
+  - pattern: "*.okta.com"
+    reason: "UserConfigured"
+    description: "Corporate SSO"
+
+dynamic:
+  default_ttl: 7200  # 2 hours
+  max_rules: 500
+  cleanup_interval: 600  # 10 minutes
+
+alerts:
+  enabled: true
+  alert_on_static: false  # Don't alert on known corporate domains
+  alert_on_dynamic: true   # Alert when new bypass added
+  alert_on_pinning: true   # Alert on pinning detection
+
+include_example_rules: false
