@@ -12,6 +12,16 @@ readme = "README.md"
 keywords = ["mitm", "tls", "https", "interception", "security"]
 categories = ["network-programming", "cryptography"]
 rust-version = "1.70"
+exclude = [
+    "AGENTS.md",
+    "STATUS.md",
+    "DEPLOYMENT.md",
+    "QUICKSTART.md",
+    "README.md.backup",
+    "docs/V0.1.0_RELEASE_BLOCKERS.md",
+    "pdocs/",
+    "CLAUDE.md",
+]
 
 [lib]
 name = "derusted"
