@@ -2,13 +2,14 @@
 
 **Production-ready Rust library for HTTPS MITM proxy with enterprise-grade security**
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Crates.io Version](https://img.shields.io/crates/v/derusted.svg)](https://crates.io/crates/derusted)
+[![docs.rs](https://docs.rs/derusted/badge.svg)](https://docs.rs/derusted)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kumarimlab/derusted/blob/main/LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)](https://www.rust-lang.org/)
-[![Tests](https://img.shields.io/badge/tests-148%20passing-brightgreen.svg)]()
 
 Derusted is a high-performance forward proxy library built in Rust for HTTPS traffic inspection via dynamic TLS certificate generation. Built for safety, security, and developer experience.
 
-**Version**: 0.1.0 | **Status**: ✅ Production Ready
+**Version**: 0.1.1 | **Status**: ✅ Production Ready
 
 ---
 
