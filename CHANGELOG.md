@@ -256,7 +256,7 @@ Developed by the **Pinaka Engineering Team**
 - **Repository**: https://github.com/your-org/derusted
 - **Documentation**: See `docs/` directory
 - **Issues**: https://github.com/your-org/derusted/issues
-- **Security**: security@your-org.com
+- **Security**: kumar.imlab@outlook.com
 
 ---
 

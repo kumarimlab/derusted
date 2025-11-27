@@ -601,6 +601,6 @@ cargo test --lib pii -- --nocapture
 
 ## Appendix B: Security Contacts
 
-- **Security Issues**: security@example.com
+- **Security Issues**: kumar.imlab@outlook.com
 - **General Issues**: https://github.com/your-org/derusted/issues
 - **CVE Reporting**: Follow GitHub Security Advisory process

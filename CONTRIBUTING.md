@@ -47,7 +47,7 @@ If you find a bug, please open an issue on GitHub with:
 5. **Environment** - OS, Rust version, Derusted version
 6. **Logs/Screenshots** - Any relevant error messages or logs
 
-**Security vulnerabilities**: Please report security issues privately to security@your-org.com instead of opening a public issue.
+**Security vulnerabilities**: Please report security issues privately to kumar.imlab@outlook.com instead of opening a public issue.
 
 ### Suggesting Features
 
@@ -316,7 +316,7 @@ Closes #123
 
 - **Issues**: https://github.com/your-org/derusted/issues
 - **Discussions**: https://github.com/your-org/derusted/discussions
-- **Security**: security@your-org.com (private)
+- **Security**: kumar.imlab@outlook.com (private)
 
 ### Getting Help
 

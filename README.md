@@ -498,7 +498,7 @@ For complete test results, see [TEST_STATUS.md](pdocs/TEST_STATUS.md).
 ## 📧 Support
 
 - **Issues**: https://github.com/your-org/derusted/issues
-- **Security**: security@your-org.com
+- **Security**: kumar.imlab@outlook.com
 - **Discussions**: https://github.com/your-org/derusted/discussions
 
 ---
