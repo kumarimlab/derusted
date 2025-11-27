@@ -8,29 +8,27 @@
 
 Derusted is a high-performance forward proxy library built in Rust for HTTPS traffic inspection via dynamic TLS certificate generation. Built for safety, security, and developer experience.
 
-**Version**: 0.1.0 | **Status**: ✅ Production Ready | **Development**: 8 weeks (Nov 2025)
+**Version**: 0.1.0 | **Status**: ✅ Production Ready
 
 ---
 
 ## 🚀 Features
 
-Built over 8 weeks (Week 1-7), hardened in Week 8:
-
-### MITM & Certificate Management (Week 1)
+### MITM & Certificate Management
 - ✅ **Dynamic Certificate Generation** - On-the-fly TLS certificates per domain
 - ✅ **CA Key Management** - Secure integration with HashiCorp Vault, AWS KMS, or environment variables
 - ✅ **Certificate Caching** - LRU + TTL cache (default 24-hour TTL, max 1000 certs)
 - ✅ **Thread-Safe Operations** - Arc/Mutex for concurrent access
 - ✅ **Memory Protection** - CA private key never logged, proper zeroing on drop
 
-### HTTP/1.1 MITM (Week 2-3)
+### HTTP/1.1 MITM
 - ✅ **Request Interception** - Full HTTP/1.1 request inspection and modification
 - ✅ **Response Interception** - Complete response capture with streaming support
 - ✅ **Method Support** - GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
 - ✅ **Header Manipulation** - Read, modify, add, remove headers
 - ✅ **Body Inspection** - Access to request/response bodies
 
-### Logging & Privacy (Week 4)
+### Logging & Privacy
 - ✅ **SQLite Request Logging** - Persistent storage of HTTP transactions
 - ✅ **PII Redaction** - Automatic redaction of 6 sensitive data types:
   - Email addresses → `[EMAIL REDACTED]`
@@ -42,21 +40,21 @@ Built over 8 weeks (Week 1-7), hardened in Week 8:
 - ✅ **Sensitive Header Redaction** - Authorization, Cookie, Set-Cookie, X-API-Key, etc.
 - ✅ **13 Unit Tests** - Comprehensive PII redaction test coverage
 
-### Smart Bypass System (Week 5)
+### Smart Bypass System
 - ✅ **60+ Static Bypass Rules** - Pre-configured for certificate-pinned services
 - ✅ **Dynamic Pinning Detection** - Automatic bypass after 3 failed TLS handshakes
 - ✅ **HSTS Support** - Honors Strict-Transport-Security headers
 - ✅ **Localhost Bypass** - Never MITM localhost/127.0.0.1
 - ✅ **Bypass Categories**: Banking, payments, government, cloud providers, developer tools
 
-### HTTP/2 MITM (Week 6)
+### HTTP/2 MITM
 - ✅ **Full HTTP/2 Support** - Stream multiplexing with flow control
 - ✅ **ALPN Negotiation** - Automatic protocol selection
 - ✅ **Stream Management** - Concurrent stream handling
 - ✅ **Chunked Transfer** - Streaming response support
 - ✅ **Error Handling** - Proper HTTP/2 error codes
 
-### Performance Optimization (Week 7)
+### Performance Optimization
 - ✅ **Connection Pooling** - Reuses TLS connections (HTTP/1.1 + unknown protocols)
   - Per-host pools with max 10 idle connections
   - 90-second idle timeout, 10-minute max lifetime
@@ -64,7 +62,7 @@ Built over 8 weeks (Week 1-7), hardened in Week 8:
 - ✅ **Certificate Cache TTL** - Bounded memory with dual eviction (LRU + TTL)
 - ✅ **Pool Statistics** - Hits, misses, evictions tracking
 
-### Security & Hardening (Week 8)
+### Security & Hardening
 - ✅ **Comprehensive Security Audit** - No blocking vulnerabilities for v0.1.0
 - ✅ **Threat Model** - 6 major threats documented with mitigations
 - ✅ **CA Rotation Procedures** - Both scheduled and emergency rotation playbooks
