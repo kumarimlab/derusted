@@ -1546,7 +1546,7 @@ fn handle_rate_limit_error(
     }
 }
 
-// // Week 1 tests disabled - Config struct needs updating
+// // Tests disabled - Config struct needs updating
 // // #[cfg(test)]
 // // #[allow(dead_code)]
 // // mod tests_disabled {

@@ -48,11 +48,11 @@ This playbook provides step-by-step procedures for rotating the Certificate Auth
 **Frequency**: Every 2-5 years, before CA expiration
 
 **Timeline**: 60 days total
-- Week -4 to -1: Preparation
+- 4 weeks before: Preparation
 - Day 1-30: Dual-issue period
 - Day 31-60: Cleanup
 
-### Phase 1: Preparation (Week -4 to -1)
+### Phase 1: Preparation (4 weeks before)
 
 #### Step 1.1: Generate New CA
 
@@ -388,7 +388,7 @@ ls -la ca-production-v1-key.pem  # Should not exist
 - Hour 0-1: Containment
 - Hour 1-4: New CA deployment
 - Day 1-7: Client migration
-- Week 2-4: Investigation and cleanup
+- Day 14-30: Investigation and cleanup
 
 ### Phase 1: Immediate Containment (<1 Hour)
 
@@ -535,7 +535,7 @@ For immediate assistance: [support contact]
 
 ---
 
-### Phase 4: Investigation & Cleanup (Week 2-4)
+### Phase 4: Investigation & Cleanup (Day 14-30)
 
 #### Step 4.1: Root Cause Analysis
 
@@ -695,7 +695,7 @@ done
 - [ ] Test installation scripts
 - [ ] Communicate upcoming rotation
 
-### Week 1-4 (Dual-Issue)
+### Day 1-30 (Dual-Issue)
 - [ ] Deploy new CA to proxies
 - [ ] Distribute CA to clients
 - [ ] Monitor adoption rate
@@ -733,7 +733,7 @@ done
 - [ ] Forced updates (if possible)
 - [ ] Prioritize critical users
 
-### Week 2-4 (Investigation)
+### Day 14-30 (Investigation)
 - [ ] Root cause analysis
 - [ ] Review issued certificates
 - [ ] Replace with production CA

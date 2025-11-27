@@ -437,7 +437,7 @@ impl MitmInterceptor {
         let bytes_transferred = match alpn_protocol_owned.as_deref() {
             Some(b"h2") => {
                 debug!(target_host = %target_host, "Using production HTTP/2 MITM with flow control");
-                // Week 6: Use production-grade h2 crate handler with proper flow control
+                // Use production-grade h2 crate handler with proper flow control
                 // Note: HTTP/2 handler takes ownership of both streams, cannot return to pool
                 match crate::mitm::handle_http2_mitm(
                     client_tls,

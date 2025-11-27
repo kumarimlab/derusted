@@ -96,7 +96,7 @@ pub use ip_tracker::{IpTracker, IpTrackerError};
 /// Body size limiting
 pub use body_limiter::{read_body_with_limit, BodyLimitError};
 
-/// MITM types (Week 1-4 implementation)
+/// MITM types and functionality
 pub use mitm::{
     AlertConfig,
     BypassConfig,

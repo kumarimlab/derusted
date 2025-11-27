@@ -6,15 +6,15 @@
 //! - GOAWAY/RST frame handling
 //! - Stream lifecycle management
 //!
-//! ## Week 6 vs Week 5
+//! ## Two-Layer HTTP/2 Architecture
 //!
-//! **Week 5** (`http2_parser.rs`): Low-level frame parsing for inspection/logging only.
+//! **Parser layer** (`http2_parser.rs`): Low-level frame parsing for inspection/logging only.
 //! - Manual frame parsing
 //! - HPACK decompression
 //! - Request/response extraction
 //! - **No flow control or backpressure**
 //!
-//! **Week 6** (`http2_mitm.rs`): Production HTTP/2 proxying using `h2` crate.
+//! **MITM layer** (`http2_mitm.rs`): Production HTTP/2 proxying using `h2` crate.
 //! - Automatic flow control
 //! - Backpressure via reserve_capacity()
 //! - Per-stream concurrency

@@ -1,7 +1,5 @@
 //! Certificate Authority (CA) Management
 //!
-//! Phase 1, Week 1: CA Certificate Management
-//!
 //! This module handles:
 //! - CA certificate generation
 //! - CA private key storage and encryption
