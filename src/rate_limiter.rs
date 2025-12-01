@@ -121,9 +121,60 @@ impl RateLimiter {
         }
     }
 
-    /// Check if request is allowed for given token
+    /// Check if request is allowed for given token using default configured limits
+    ///
+    /// This is a convenience wrapper around `check_limit_with_override` that uses
+    /// the default rate limits from configuration.
     pub async fn check_limit(&self, token_id: &str) -> Result<(), RateLimitError> {
+        self.check_limit_with_override(token_id, None).await
+    }
+
+    /// Check if request is allowed for given token with optional rate limit override
+    ///
+    /// This method allows dynamic rate limiting based on user tier, subscription level,
+    /// or other criteria. When `requests_per_minute_override` is `Some`, it will use
+    /// that value instead of the configured default.
+    ///
+    /// # Arguments
+    ///
+    /// * `token_id` - Unique identifier for the rate limit bucket (e.g., JWT token ID)
+    /// * `requests_per_minute_override` - Optional override for requests per minute.
+    ///   If `None`, uses the configured default. The burst size remains unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use derusted::{RateLimiter, RateLimiterConfig};
+    ///
+    /// # async fn example() {
+    /// let config = RateLimiterConfig {
+    ///     requests_per_minute: 100,  // Default for free tier
+    ///     burst_size: 10,
+    ///     bucket_ttl_seconds: 3600,
+    ///     max_buckets: 10000,
+    /// };
+    /// let limiter = RateLimiter::new(config);
+    ///
+    /// // Use default limit (free tier: 100/min)
+    /// limiter.check_limit("free_user_token").await.unwrap();
+    ///
+    /// // Override for pro tier (10,000/min)
+    /// limiter.check_limit_with_override("pro_user_token", Some(10000)).await.unwrap();
+    ///
+    /// // Override for enterprise (100,000/min)
+    /// limiter.check_limit_with_override("enterprise_token", Some(100000)).await.unwrap();
+    /// # }
+    /// ```
+    pub async fn check_limit_with_override(
+        &self,
+        token_id: &str,
+        requests_per_minute_override: Option<usize>,
+    ) -> Result<(), RateLimitError> {
         let mut buckets = self.buckets.lock().await;
+
+        // Determine effective rate limit
+        let effective_requests_per_minute =
+            requests_per_minute_override.unwrap_or(self.config.requests_per_minute);
 
         // Get or create bucket for this token
         let bucket = buckets.get_mut(token_id);
@@ -134,10 +185,10 @@ impl RateLimiter {
                 if bucket.is_expired() {
                     debug!("Token bucket expired for {}, creating new one", token_id);
 
-                    // Create new bucket
+                    // Create new bucket with effective rate limit
                     let new_bucket = TokenBucket::new(
                         self.config.burst_size,
-                        self.config.requests_per_minute,
+                        effective_requests_per_minute,
                         Duration::from_secs(self.config.bucket_ttl_seconds),
                     );
 
@@ -167,7 +218,7 @@ impl RateLimiter {
                     } else {
                         warn!(
                             "Rate limit exceeded for {} (capacity: {}, refill: {}/min)",
-                            token_id, self.config.burst_size, self.config.requests_per_minute
+                            token_id, self.config.burst_size, effective_requests_per_minute
                         );
                         Err(RateLimitError::LimitExceeded(token_id.to_string()))
                     }
@@ -209,10 +260,10 @@ impl RateLimiter {
                     }
                 }
 
-                // Create new bucket
+                // Create new bucket with effective rate limit
                 let mut bucket = TokenBucket::new(
                     self.config.burst_size,
-                    self.config.requests_per_minute,
+                    effective_requests_per_minute,
                     Duration::from_secs(self.config.bucket_ttl_seconds),
                 );
 
@@ -597,5 +648,119 @@ mod tests {
             stats.active_tokens, 1,
             "Should have only the new token after cleanup"
         );
+    }
+
+    #[tokio::test]
+    async fn test_rate_limit_override_higher_limit() {
+        // Test that override allows higher rate than default
+        let config = RateLimiterConfig {
+            requests_per_minute: 60, // Default: 1 per second
+            burst_size: 2,           // Small burst
+            bucket_ttl_seconds: 300,
+            max_buckets: 100,
+        };
+
+        let limiter = RateLimiter::new(config);
+
+        // Token with default limit exhausts burst quickly
+        assert!(limiter.check_limit("default_token").await.is_ok());
+        assert!(limiter.check_limit("default_token").await.is_ok());
+        assert!(
+            limiter.check_limit("default_token").await.is_err(),
+            "Default token should hit limit"
+        );
+
+        // Token with higher override gets more capacity (higher refill rate)
+        // With 6000/min override, new bucket gets burst_size tokens but refills faster
+        assert!(limiter
+            .check_limit_with_override("pro_token", Some(6000))
+            .await
+            .is_ok());
+        assert!(limiter
+            .check_limit_with_override("pro_token", Some(6000))
+            .await
+            .is_ok());
+        // Will hit burst limit, but bucket refills 100x faster
+        assert!(
+            limiter
+                .check_limit_with_override("pro_token", Some(6000))
+                .await
+                .is_err(),
+            "Pro token should also hit burst limit"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rate_limit_override_none_uses_default() {
+        // Test that None override uses default config
+        let config = RateLimiterConfig {
+            requests_per_minute: 60,
+            burst_size: 3,
+            bucket_ttl_seconds: 300,
+            max_buckets: 100,
+        };
+
+        let limiter = RateLimiter::new(config);
+
+        // Using override with None should behave same as check_limit
+        assert!(limiter
+            .check_limit_with_override("token1", None)
+            .await
+            .is_ok());
+        assert!(limiter
+            .check_limit_with_override("token1", None)
+            .await
+            .is_ok());
+        assert!(limiter
+            .check_limit_with_override("token1", None)
+            .await
+            .is_ok());
+        assert!(
+            limiter
+                .check_limit_with_override("token1", None)
+                .await
+                .is_err(),
+            "Should hit limit after burst"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rate_limit_different_tiers() {
+        // Simulate tiered SaaS rate limiting
+        let config = RateLimiterConfig {
+            requests_per_minute: 100, // Free tier default
+            burst_size: 5,
+            bucket_ttl_seconds: 300,
+            max_buckets: 100,
+        };
+
+        let limiter = RateLimiter::new(config);
+
+        // Free tier uses default
+        for _ in 0..5 {
+            assert!(limiter.check_limit("free_user").await.is_ok());
+        }
+        assert!(limiter.check_limit("free_user").await.is_err());
+
+        // Pro tier gets 10x the rate
+        for _ in 0..5 {
+            assert!(limiter
+                .check_limit_with_override("pro_user", Some(1000))
+                .await
+                .is_ok());
+        }
+        // Also hits burst limit (same burst_size), but refills 10x faster
+        assert!(limiter
+            .check_limit_with_override("pro_user", Some(1000))
+            .await
+            .is_err());
+
+        // Enterprise tier gets 100x the rate
+        for _ in 0..5 {
+            assert!(limiter
+                .check_limit_with_override("enterprise_user", Some(10000))
+                .await
+                .is_ok());
+        }
     }
 }

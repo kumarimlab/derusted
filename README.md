@@ -9,7 +9,9 @@
 
 Derusted is a high-performance forward proxy library built in Rust for HTTPS traffic inspection via dynamic TLS certificate generation. Built for safety, security, and developer experience.
 
-**Version**: 0.1.1 | **Status**: ✅ Production Ready
+**Version**: 0.2.0 | **Status**: ✅ Production Ready
+
+> **⚠️ v0.2.0 Breaking Changes**: If upgrading from v0.1.x, see [Migration Guide](#-migrating-from-v01x-to-v020) below.
 
 ---
 
@@ -354,6 +356,170 @@ Comprehensive documentation created during Week 8:
 - **[THREAT_MODEL.md](docs/THREAT_MODEL.md)** - 6 major threats with mitigations
 - **[CA_ROTATION.md](docs/CA_ROTATION.md)** - Scheduled and emergency rotation procedures
 - **[CI_CD_NOTE.md](docs/CI_CD_NOTE.md)** - CI/CD decision and manual checks
+
+---
+
+## 🔄 Migrating from v0.1.x to v0.2.0
+
+v0.2.0 introduces extensible JWT claims, which requires minor code changes.
+
+### Breaking Change: JwtClaims Construction
+
+**Before (v0.1.x):**
+```rust
+let claims = JwtClaims {
+    token_id: "...".to_string(),
+    user_id: 42,
+    allowed_regions: vec!["us-east".to_string()],
+    exp: ...,
+    iat: ...,
+    iss: Some("...".to_string()),
+    aud: Some("...".to_string()),
+};
+```
+
+**After (v0.2.0) - Recommended: Use constructor**
+```rust
+// Simple, clean, backwards-compatible
+let claims = JwtClaims::new(
+    "...".to_string(),    // token_id
+    42,                   // user_id
+    vec!["us-east".to_string()],  // allowed_regions
+    exp,                  // expiration
+    iat,                  // issued_at
+    Some("...".to_string()),  // issuer
+    Some("...".to_string()),  // audience
+);
+```
+
+**After (v0.2.0) - Alternative: Add extra field**
+```rust
+let claims = JwtClaims {
+    token_id: "...".to_string(),
+    user_id: 42,
+    // ... other fields ...
+    extra: (), // ← Add this line
+};
+```
+
+### Type Inference for JwtValidator
+
+If you see type inference errors, add explicit type annotation:
+```rust
+// Before: let validator = JwtValidator::new(...)?;
+// After:
+let validator: JwtValidator<()> = JwtValidator::new(...)?;
+```
+
+---
+
+## 🔧 Extensibility Patterns (v0.2.0+)
+
+Derusted is designed as a foundation library. These patterns follow industry standards from [Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/extension), [goproxy](https://github.com/elazarl/goproxy), and [mitmproxy](https://docs.mitmproxy.org/stable/addons/overview/).
+
+### Custom JWT Claims
+
+Extend `JwtClaims` with application-specific fields:
+
+```rust
+use derusted::{JwtClaims, JwtValidator};
+use serde::Deserialize;
+
+// 1. Define your custom claims
+#[derive(Debug, Clone, Default, Deserialize)]
+struct SaasCustomClaims {
+    tier: Option<String>,           // "free", "pro", "enterprise"
+    rate_limit_per_hour: Option<usize>,
+    features: Vec<String>,
+}
+
+// 2. Create validator for extended claims
+let validator: JwtValidator<SaasCustomClaims> = JwtValidator::new(
+    secret.to_string(),
+    "HS256".to_string(),
+    "us-east".to_string(),
+    None,
+    None,
+)?;
+
+// 3. Validate and access custom fields
+let claims = validator.validate(&format!("Bearer {}", token))?;
+println!("Tier: {:?}", claims.extra.tier);
+println!("Rate limit: {:?}", claims.extra.rate_limit_per_hour);
+
+// 4. Create tokens with custom claims
+let claims = JwtClaims::with_extra(
+    "token_123".to_string(),
+    42,
+    vec!["us-east".to_string()],
+    exp, iat, iss, aud,
+    SaasCustomClaims {
+        tier: Some("pro".to_string()),
+        rate_limit_per_hour: Some(10000),
+        features: vec!["advanced_routing".to_string()],
+    },
+);
+```
+
+See [examples/custom_auth.rs](examples/custom_auth.rs) for a complete example.
+
+### Dynamic Rate Limiting
+
+Override rate limits per-request based on user tier:
+
+```rust
+use derusted::{RateLimiter, RateLimiterConfig};
+
+let config = RateLimiterConfig {
+    requests_per_minute: 100,  // Default (free tier)
+    burst_size: 20,
+    bucket_ttl_seconds: 3600,
+    max_buckets: 100_000,
+};
+
+let limiter = RateLimiter::new(config);
+
+// Free tier: use default
+limiter.check_limit("free_user_token").await?;
+
+// Pro tier: 10,000 req/min
+limiter.check_limit_with_override("pro_user_token", Some(10_000)).await?;
+
+// Enterprise: 100,000 req/min
+limiter.check_limit_with_override("enterprise_token", Some(100_000)).await?;
+```
+
+See [examples/tiered_rate_limits.rs](examples/tiered_rate_limits.rs) for a complete example.
+
+### Config Extension via Deref
+
+Extend `Config` with custom fields using the Deref pattern:
+
+```rust
+use std::ops::Deref;
+use derusted::Config;
+
+// Your extended config
+pub struct MyAppConfig {
+    base: Config,
+    pub custom_logger: Arc<MyLogger>,
+    pub feature_flags: FeatureFlags,
+}
+
+// Implement Deref for transparent access
+impl Deref for MyAppConfig {
+    type Target = Config;
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
+}
+
+// Now you can access both
+config.destination_filter  // derusted field (via Deref)
+config.custom_logger       // your custom field
+```
+
+See [examples/custom_config.rs](examples/custom_config.rs) for a complete example.
 
 ---
 

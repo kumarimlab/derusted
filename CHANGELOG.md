@@ -7,6 +7,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2025-12-01
+
+### ⚠️ Breaking Changes
+
+This release contains breaking changes to improve extensibility. Migration is straightforward.
+
+#### JwtClaims Struct Construction
+
+**Before (v0.1.x):**
+```rust
+let claims = JwtClaims {
+    token_id: "...".to_string(),
+    user_id: 42,
+    allowed_regions: vec!["us-east".to_string()],
+    exp: ...,
+    iat: ...,
+    iss: Some("...".to_string()),
+    aud: Some("...".to_string()),
+};
+```
+
+**After (v0.2.0) - Option 1: Use constructor (recommended):**
+```rust
+let claims = JwtClaims::new(
+    "...".to_string(),
+    42,
+    vec!["us-east".to_string()],
+    exp,
+    iat,
+    Some("...".to_string()),
+    Some("...".to_string()),
+);
+```
+
+**After (v0.2.0) - Option 2: Add extra field:**
+```rust
+let claims = JwtClaims {
+    token_id: "...".to_string(),
+    user_id: 42,
+    allowed_regions: vec!["us-east".to_string()],
+    exp: ...,
+    iat: ...,
+    iss: Some("...".to_string()),
+    aud: Some("...".to_string()),
+    extra: (), // Add this field
+};
+```
+
+#### JwtValidator Type Inference
+
+In some contexts, you may need to add type annotation:
+```rust
+// If type inference fails, add explicit type:
+let validator: JwtValidator<()> = JwtValidator::new(...)?;
+```
+
+### Added
+
+#### Extensible JWT Claims ([#2](https://github.com/kumarimlab/derusted/issues/2))
+- `JwtClaims<E>` is now generic over custom claims type `E` (default `()`)
+- `JwtClaims::new()` - Convenience constructor for standard claims
+- `JwtClaims::with_extra()` - Constructor for custom claims
+- `JwtValidator<E>` - Generic validator matching claims type
+- Full backwards compatibility when using constructors
+- Follows [Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/extension), [goproxy](https://github.com/elazarl/goproxy), and [mitmproxy](https://docs.mitmproxy.org/stable/addons/overview/) extensibility patterns
+
+**Example - Extended claims for SaaS tiers:**
+```rust
+#[derive(Debug, Clone, Default, Deserialize)]
+struct SaasCustomClaims {
+    tier: Option<String>,
+    rate_limit_per_hour: Option<usize>,
+}
+
+let validator: JwtValidator<SaasCustomClaims> = JwtValidator::new(...)?;
+let claims = validator.validate(&token)?;
+println!("Tier: {:?}", claims.extra.tier);
+```
+
+#### Dynamic Rate Limit Override ([#4](https://github.com/kumarimlab/derusted/issues/4))
+- `RateLimiter::check_limit_with_override(token_id, requests_per_minute)` method
+- Enables per-user/tier rate limiting without separate limiter instances
+- Original `check_limit()` method unchanged (uses default config)
+
+**Example - Tiered rate limiting:**
+```rust
+// Free tier: default 100/min
+limiter.check_limit("free_user").await?;
+
+// Pro tier: 10,000/min
+limiter.check_limit_with_override("pro_user", Some(10_000)).await?;
+
+// Enterprise: 100,000/min
+limiter.check_limit_with_override("enterprise", Some(100_000)).await?;
+```
+
+#### Examples Directory ([#7](https://github.com/kumarimlab/derusted/issues/7))
+- `examples/custom_auth.rs` - Extended JWT claims for SaaS applications
+- `examples/tiered_rate_limits.rs` - Dynamic rate limiting integration
+- `examples/custom_config.rs` - Config extension using Deref pattern
+
+#### Documentation ([#3](https://github.com/kumarimlab/derusted/issues/3))
+- New "Extensibility Patterns" section in README
+- Migration guide for breaking changes
+- Config extension documentation (Deref pattern)
+
+### Changed
+- `JwtClaims` struct now has `extra: E` field (breaking)
+- `JwtValidator` is now generic over claims type (breaking in some contexts)
+- All auth tests updated for new generic structure
+- 16 new tests added for extensibility features
+
+### Tests
+- 157 passing tests (was 153 in v0.1.1)
+- New tests: `test_jwt_claims_new_constructor`, `test_jwt_claims_with_extra_constructor`, `test_extended_claims`, `test_backwards_compatibility_default_claims`, `test_rate_limit_override_*`
+
+---
+
 ## [0.1.1] - 2025-11-27
 
 ### Changed
@@ -269,15 +387,15 @@ Developed by the **Pinaka Engineering Team**
 
 ## [Unreleased]
 
-### Planned for v0.2.0
+### Planned for v0.3.0
 - [ ] Upgrade sqlx to v0.8.1+ (fixes RUSTSEC-2024-0363)
 - [ ] Upgrade rcgen to use ring v0.17+ (fixes RUSTSEC-2024-0006)
 - [ ] Migrate from trust-dns to hickory-dns
 - [ ] User-configurable bypass rules
 - [ ] Connection health checks for pooled connections
 - [ ] Formal performance benchmarking
-- [ ] HTTP/2 server push support (if needed)
-- [ ] Active TTL cleanup for certificate cache (background task)
+- [ ] Prelude module for common imports ([#5](https://github.com/kumarimlab/derusted/issues/5))
+- [ ] Cargo feature flags for optional functionality ([#6](https://github.com/kumarimlab/derusted/issues/6))
 
 ---
 
